@@ -1,0 +1,43 @@
+# 型チェック + フォーマット検査 + 単体テスト + 本番ビルド + 内部リンク検査 + JSON-LD 検査を
+# PR / push ごとに実行する。デプロイは Cloudflare Workers Builds(Git 連携)側が
+# 行うため、ここでは「壊れていないか」だけを検証する。
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+# Read-only token: this workflow only checks out and builds.
+permissions:
+  contents: read
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      # pnpm のバージョンは package.json の "packageManager" を読む
+      - uses: pnpm/action-setup@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+
+      - run: pnpm install --frozen-lockfile
+
+      - run: pnpm format:check
+
+      - run: pnpm check
+
+      - run: pnpm test
+
+      - run: pnpm build
+
+      # ビルド成果物に対して内部リンク切れを検査する(外部リンクは叩かない)。
+      - run: pnpm check:links
+
+      # 全ページの JSON-LD が1つの @graph で、@id 参照がすべて解決するか検査する。
+      - run: pnpm check:jsonld
