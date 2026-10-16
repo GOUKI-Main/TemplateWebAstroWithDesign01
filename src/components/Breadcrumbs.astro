@@ -12,26 +12,30 @@ export type BreadcrumbItem = { name: string; url: string };
 const { items } = Astro.props as { items: BreadcrumbItem[] };
 ---
 
-<nav aria-label="パンくずリスト" class="mb-6 text-sm text-muted">
-  <ol class="flex flex-wrap items-center gap-2">
+<nav aria-label="パンくずリスト" class="text-[0.75rem] text-subtle">
+  <ol class="m-0 flex list-none flex-wrap items-center gap-x-2 p-0">
     {
       items.map((item, i) => {
         const last = i === items.length - 1;
         return (
           <li class="flex items-center gap-2">
             {last ? (
-              <span aria-current="page" class="text-fg">
+              <span aria-current="page" class="text-muted">
                 {item.name}
               </span>
             ) : (
               <a
                 href={item.url}
-                class="tap-target no-underline hover:text-link"
+                class="tap-target text-subtle no-underline transition-colors hover:text-fg"
               >
                 {item.name}
               </a>
             )}
-            {!last && <span aria-hidden="true">/</span>}
+            {!last && (
+              <span aria-hidden="true" class="text-faint">
+                ／
+              </span>
+            )}
           </li>
         );
       })

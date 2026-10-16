@@ -1,45 +1,174 @@
 ---
+import { Image } from "astro:assets";
 import Base from "../layouts/Base.astro";
-import { site } from "../content/site";
+import Hero, { type HeroSlide } from "../components/Hero.astro";
+import Section from "../components/ui/Section.astro";
+import InlineCta from "../components/InlineCta.astro";
+import CtaBand from "../components/CtaBand.astro";
 import FAQ from "../components/FAQ.astro";
+import { site } from "../content/site";
 
-// TODO(setup): Q11 トップページ — 強み3つ / 提供内容 / 行動喚起（CTA）
-// TODO(setup): Q12 よくある質問（不要なら FAQ ごと削除）
+// サンプル写真。差し替えるときは src/assets/images/ に置いて import を替える。
+// TODO(setup): Q10 ヒーローと各節の写真（無ければサンプルのままでも表示は崩れない）
+import sample1 from "../assets/images/sample/sample-1.jpg";
+import sample2 from "../assets/images/sample/sample-2.jpg";
+import sample3 from "../assets/images/sample/sample-3.jpg";
+
+// TODO(setup): Q3 ヒーローの見出し（キャッチコピーを1〜2行に割る）と、その上の一行
+// 一語だけ差し色にするなら <span class="hero-em">30</span> のように書く。
+const heroEyebrow = "地域 ｜ 業種";
+const heroLines = ["キャッチコピーの", "一行目と二行目。"];
+
+// ヒーローの背景に回す写真。1枚だけなら静止画になる。
+const slides: HeroSlide[] = [
+  { image: sample1, label: "写真の名前（例：〇〇の外観）", meta: "補足の一行" },
+  { image: sample2, label: "写真の名前（例：店内の様子）", meta: "補足の一行" },
+  {
+    image: sample3,
+    label: "写真の名前（例：こだわりの素材）",
+    meta: "補足の一行",
+  },
+];
+
+// TODO(setup): Q11 トップページ — 選ばれる理由3つ / 提供しているもの / 行動喚起
+const reasons = [
+  {
+    title: "強み1の見出し",
+    body: "強みの具体的な説明を、一文か二文で書きます。",
+  },
+  {
+    title: "強み2の見出し",
+    body: "強みの具体的な説明を、一文か二文で書きます。",
+  },
+  {
+    title: "強み3の見出し",
+    body: "強みの具体的な説明を、一文か二文で書きます。",
+  },
+];
+
+const offerings = [
+  {
+    image: sample1,
+    alt: "サンプル画像。差し替える写真の内容をここに書く",
+    title: "サービス・商品1",
+    body: "どんな人に、何を提供しているかを短く書きます。",
+  },
+  {
+    image: sample2,
+    alt: "サンプル画像。差し替える写真の内容をここに書く",
+    title: "サービス・商品2",
+    body: "どんな人に、何を提供しているかを短く書きます。",
+  },
+  {
+    image: sample3,
+    alt: "サンプル画像。差し替える写真の内容をここに書く",
+    title: "サービス・商品3",
+    body: "どんな人に、何を提供しているかを短く書きます。",
+  },
+];
+
+// TODO(setup): Q12 よくある質問（不要なら FAQ の節ごと削除）
 const faqs = [
-  {
-    q: "よくある質問1",
-    a: "回答をここに書きます。",
-  },
-  {
-    q: "よくある質問2",
-    a: "回答をここに書きます。",
-  },
+  { q: "よくある質問1", a: "回答をここに書きます。" },
+  { q: "よくある質問2", a: "回答をここに書きます。" },
+  { q: "よくある質問3", a: "回答をここに書きます。" },
 ];
 ---
 
 <Base description={site.description} canonicalPath="/">
-  <article class="prose">
-    <h1>{site.tagline}</h1>
-    <p class="lead">{site.description}</p>
+  <Hero
+    eyebrow={heroEyebrow}
+    lines={heroLines}
+    lead={site.tagline}
+    actions={[
+      { ...site.cta },
+      { label: "私たちについて", href: "/about", tone: "line" },
+    ]}
+    slides={slides}
+  />
 
-    <section>
-      <h2>選ばれる理由</h2>
-      <ul>
-        <li><strong>強み1</strong> — 具体的な説明。</li>
-        <li><strong>強み2</strong> — 具体的な説明。</li>
-        <li><strong>強み3</strong> — 具体的な説明。</li>
-      </ul>
-    </section>
+  <Section eyebrow="選ばれる理由 ｜ 三つ" space="lg">
+    <div data-reveal-child="0.1" class="grid gap-10 md:grid-cols-3 md:gap-12">
+      {
+        reasons.map((r) => (
+          <div class="border-t border-border-strong pt-6">
+            <h3 class="h-item m-0">{r.title}</h3>
+            <p class="m-0 mt-4 text-[0.875rem] leading-[1.95] text-muted">
+              {r.body}
+            </p>
+          </div>
+        ))
+      }
+    </div>
 
-    <section>
-      <h2>提供しているもの</h2>
-      <p>商品・サービス・メニューの概要をここに書きます。</p>
-    </section>
+    <p data-reveal class="body-sm mt-14 max-w-xl">{site.description}</p>
+  </Section>
 
-    <p>
-      <a href="/contact">お問い合わせはこちら</a>
-    </p>
-  </article>
+  <InlineCta
+    text="ご相談・ご質問は、お問い合わせから受け付けています。"
+    label={site.cta.label}
+    href={site.cta.href}
+    tone="accent"
+  />
 
-  <FAQ items={faqs} />
+  <Section eyebrow="提供しているもの" space="lg">
+    <div class="grid gap-10 sm:grid-cols-2 lg:grid-cols-3 lg:gap-8">
+      {
+        offerings.map((o) => (
+          <div data-reveal>
+            <figure data-img-reveal class="m-0 aspect-[4/3] overflow-hidden">
+              <Image
+                data-img-inner
+                src={o.image}
+                alt={o.alt}
+                widths={[360, 540, 760]}
+                sizes="(min-width: 1024px) 30vw, (min-width: 640px) 45vw, 100vw"
+                loading="lazy"
+                class="h-full w-full object-cover"
+              />
+            </figure>
+            <h3 class="h-item m-0 mt-5">{o.title}</h3>
+            <p class="m-0 mt-3 max-w-md text-[0.875rem] leading-[1.95] text-muted">
+              {o.body}
+            </p>
+          </div>
+        ))
+      }
+    </div>
+  </Section>
+
+  <Section space="lg" tone="surface">
+    <div class="grid gap-12 lg:grid-cols-[1fr_1.1fr] lg:items-center lg:gap-20">
+      <figure data-img-reveal class="m-0 aspect-[3/2] overflow-hidden">
+        <Image
+          data-img-inner
+          src={sample2}
+          alt="サンプル画像。差し替える写真の内容をここに書く"
+          widths={[480, 760, 1040]}
+          sizes="(min-width: 1024px) 44vw, 100vw"
+          loading="lazy"
+          class="h-full w-full object-cover"
+        />
+      </figure>
+
+      <div>
+        <p data-reveal class="eyebrow m-0">私たちについて</p>
+        <h2 data-reveal class="h-section m-0 mt-5">
+          想いを伝える<br />見出しを、二行で。
+        </h2>
+        <p data-reveal class="body-text mt-7 max-w-md">
+          はじめた理由や、お客様に約束していることを短く書きます。詳しくは「私たちについて」のページへ。
+        </p>
+        <a data-reveal href="/about" class="link-rule mt-9">私たちについて →</a>
+      </div>
+    </div>
+  </Section>
+
+  <Section eyebrow="よくある質問" space="lg">
+    <div data-reveal class="max-w-3xl">
+      <FAQ items={faqs} />
+    </div>
+  </Section>
+
+  <CtaBand />
 </Base>

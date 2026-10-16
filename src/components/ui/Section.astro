@@ -1,0 +1,97 @@
+---
+// 節。上下の余白と、必要なら見出し・小見出しをまとめて持つ。
+// 区切りは罫線一本と余白だけ。囲みや影は使わない。
+type Props = {
+  eyebrow?: string;
+  heading?: string;
+  /** 見出しの横に置く控えめなリンク（例「すべて見る」）。 */
+  linkHref?: string;
+  linkLabel?: string;
+  /** 上に罫線を引く。 */
+  rule?: boolean;
+  tone?: "bg" | "surface" | "primary";
+  /** 余白の量。 */
+  space?: "sm" | "md" | "lg";
+  class?: string;
+  id?: string;
+};
+
+const {
+  eyebrow,
+  heading,
+  linkHref,
+  linkLabel,
+  rule = false,
+  tone = "bg",
+  space = "md",
+  class: className = "",
+  id,
+} = Astro.props;
+
+const toneClass = {
+  bg: "bg-bg text-fg",
+  surface: "bg-surface text-fg",
+  primary: "bg-primary text-on-primary",
+}[tone];
+
+const spaceClass = {
+  sm: "py-12 md:py-16",
+  md: "py-16 md:py-24",
+  lg: "py-20 md:py-32",
+}[space];
+
+const onPrimary = tone === "primary";
+---
+
+<section id={id} class:list={[toneClass, spaceClass, className]}>
+  <div class="container-page">
+    {
+      rule && (
+        <div
+          data-rule
+          class:list={[
+            "mb-12 h-px w-full origin-left md:mb-16",
+            onPrimary ? "bg-border-on-primary" : "bg-border",
+          ]}
+        />
+      )
+    }
+
+    {
+      (eyebrow || heading) && (
+        <div class="mb-10 flex flex-wrap items-baseline justify-between gap-x-8 gap-y-3 md:mb-14">
+          <div>
+            {eyebrow && (
+              <p
+                data-reveal
+                class:list={[
+                  "eyebrow m-0",
+                  onPrimary && "text-on-primary-subtle",
+                ]}
+              >
+                {eyebrow}
+              </p>
+            )}
+            {heading && (
+              <h2 data-reveal class:list={["h-section m-0", eyebrow && "mt-4"]}>
+                {heading}
+              </h2>
+            )}
+          </div>
+
+          {linkHref && linkLabel && (
+            <a
+              data-reveal
+              href={linkHref}
+              class:list={["link-rule", onPrimary && "text-on-primary"]}
+            >
+              {linkLabel} →
+            </a>
+          )}
+        </div>
+      )
+    }
+
+    <slot />
+  </div>
+</section>

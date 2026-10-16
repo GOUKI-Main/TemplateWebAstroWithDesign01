@@ -5,6 +5,8 @@ import Header from "../components/Header.astro";
 import Footer from "../components/Footer.astro";
 import SkipLink from "../components/SkipLink.astro";
 import Cloudflare from "../components/Cloudflare.astro";
+import Loader from "../components/Loader.astro";
+import MobileBar from "../components/MobileBar.astro";
 // The breadcrumb item shape is owned by the component that renders it, not by
 // the JSON-LD builder that also happens to consume it — so structured data can
 // be removed without breaking the visible trail.
@@ -32,7 +34,8 @@ export type Props = {
   breadcrumbs?: BreadcrumbItem[];
   /** Extra JSON-LD nodes appended to the page @graph (e.g. FAQPage). */
   jsonLd?: JsonLd | JsonLd[];
-  mainCentered?: boolean;
+  /** スマホ下部の常駐導線。導線そのもののページ（お問い合わせ等）で false。 */
+  mobileBar?: boolean;
 };
 
 const {
@@ -45,7 +48,7 @@ const {
   article,
   breadcrumbs,
   jsonLd,
-  mainCentered = false,
+  mobileBar = true,
 } = Astro.props;
 
 // astro.config.mjs always sets `site` (from site.url in site.ts).
@@ -111,7 +114,7 @@ const graph = siteGraph({
 ---
 
 <!doctype html>
-<html lang={site.locale}>
+<html lang={site.locale} class="is-loading">
   <head>
     <SEO
       title={title}
@@ -127,20 +130,53 @@ const graph = siteGraph({
       jsonLd={graph}
     />
     <Cloudflare />
+    {
+      /* GSAP が触る要素を伏せる合図。JS が動く環境でだけ付くので、JS 無効時は
+         最初から全部見えている（global.css の .js-ready 参照）。描画より先に
+         効かせる必要があるので、ここだけはバンドルせず head に直接書く。
+         public/_headers の CSP を有効にするなら、この script のハッシュを
+         script-src に足すこと（同ファイルの説明を参照）。 */
+    }
+    <script is:inline>
+      document.documentElement.classList.add("js-ready");
+
+      // 保険。バンドルが落ちてこない・実行時に落ちた場合でも、幕の裏に
+      // 閉じ込めない。6秒で強制的に開ける。
+      setTimeout(function () {
+        var root = document.documentElement;
+        if (!root.classList.contains("is-loading")) return;
+        root.classList.remove("is-loading", "js-ready");
+        var loader = document.querySelector("[data-loader]");
+        if (loader) loader.remove();
+      }, 6000);
+    </script>
   </head>
 
   <body class="flex min-h-dvh flex-col bg-bg font-sans text-fg antialiased">
+    <Loader />
     <SkipLink />
     <Header />
-    <main
-      id="main"
-      class:list={[
-        "container-page flex-1 py-10",
-        { "grid place-items-center": mainCentered },
-      ]}
-    >
+    <main id="main" class="flex-1">
       <slot />
     </main>
     <Footer />
+    {mobileBar && <MobileBar />}
+
+    <script>
+      import { initLoader } from "../scripts/loader";
+      import { initMotion } from "../scripts/motion";
+      import { initHero } from "../scripts/hero";
+
+      // 幕を閉じてから本編を測る。順序が逆だと、隠れた要素の位置で
+      // ScrollTrigger が開始点を決めてしまう。
+      //
+      // ScrollTrigger の組み立ては同期で、それなりに時間を食う。先に済ませ、
+      // 次のフレームからヒーローを動かす。逆にすると、格子が抜け始めた直後の
+      // 数フレームがそこで飛ぶ（ヒーローのないページでは initHero は何もしない）。
+      initLoader().then(() => {
+        initMotion();
+        requestAnimationFrame(() => initHero());
+      });
+    </script>
   </body>
 </html>

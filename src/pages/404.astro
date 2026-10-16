@@ -1,5 +1,6 @@
 ---
 import Base from "../layouts/Base.astro";
+import { site } from "../content/site";
 
 const title = "ページが見つかりません";
 const description = "お探しのページは存在しません。";
@@ -10,16 +11,18 @@ const description = "お探しのページは存在しません。";
   description={description}
   canonicalPath="/404"
   robots="noindex,nofollow"
-  mainCentered
 >
-  <article class="prose">
-    <h1>404 — ページが見つかりません</h1>
-    <p class="lead">
-      お探しのページは存在しないか、移動された可能性があります。
-    </p>
-
-    <p>
-      <a href="/">ホームへ戻る</a>
-    </p>
-  </article>
+  <div class="container-page flex min-h-[60dvh] items-center py-20">
+    <div class="max-w-xl">
+      <p class="eyebrow m-0">404</p>
+      <h1 class="h-display m-0 mt-6">ページが<br />見つかりません。</h1>
+      <p class="body-text mt-8">
+        お探しのページは存在しないか、移動された可能性があります。
+      </p>
+      <div class="mt-12 flex flex-col gap-3 sm:flex-row">
+        <a href="/" class="btn-line">ホームへ戻る</a>
+        <a href={site.cta.href} class="btn-line">{site.cta.label}</a>
+      </div>
+    </div>
+  </div>
 </Base>

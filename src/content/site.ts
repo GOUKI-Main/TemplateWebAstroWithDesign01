@@ -5,6 +5,8 @@
 export type SiteNavItem = {
   label: string;
   href: string;
+  /** Opens in a new tab (an external form, a LINE account, …). */
+  external?: boolean;
 };
 
 /** Optional local-business / MEO data. When present, a LocalBusiness JSON-LD
@@ -65,6 +67,9 @@ export type SiteConfig = {
    *  no form JS is shipped. Widen form-action / frame-src in public/_headers
    *  if you embed or post to it. */
   contactFormUrl?: string;
+  /** The one action every page leads to: header button, the bar fixed to the
+   *  bottom on phones, the hero and the closing band all point here. */
+  cta: SiteNavItem;
   nav: SiteNavItem[];
   /** Secondary links shown in the footer (policy pages and the like). */
   footerNav?: SiteNavItem[];
@@ -78,10 +83,8 @@ export type SiteConfig = {
     /** Organization / publisher logo (square, ideally >=112px). */
     logo?: string;
     robots: string;
-    /** Browser UI color in light mode — keep in sync with --color-bg. */
+    /** Browser UI color — keep in sync with --color-bg (light only). */
     themeColor: string;
-    /** Browser UI color in dark mode — keep in sync with the dark --color-bg. */
-    themeColorDark?: string;
     /** Paths excluded from indexing: drives meta robots AND sitemap. (§1) */
     noindexPaths: string[];
     /** Google Search Console HTML-tag verification code (the `content` value).
@@ -138,6 +141,9 @@ export const site: SiteConfig = {
   // },
   // TODO(setup): Q7 お問い合わせフォームの外部URL（Googleフォーム等。なければ行ごと削除）
   // contactFormUrl: "https://forms.gle/XXXX",
+  // 主導線。ヘッダーのボタン・スマホ下部の常駐バー・ヒーロー・ページ末尾の
+  // 帯がここを指す。TODO(setup): Q7 問い合わせの受け方に合わせて文言と行き先
+  cta: { label: "お問い合わせ", href: "/contact" },
   // TODO(setup): Q6 ページ構成に合わせてナビを並べる（href は末尾スラッシュなし）
   nav: [
     { label: "ホーム", href: "/" },
@@ -153,9 +159,8 @@ export const site: SiteConfig = {
     logo: "/icon-512.png",
     robots:
       "index,follow,max-image-preview:large,max-snippet:-1,max-video-preview:-1",
-    // TODO(setup): Q9 配色を決めたら global.css の --color-bg（ライト/ダーク）と揃える
-    themeColor: "#fbfbf9",
-    themeColorDark: "#14140f",
+    // TODO(setup): Q9 配色を決めたら global.css の --color-bg と揃える
+    themeColor: "#f2f0eb",
     noindexPaths: [],
     // 公開後: Search Console の「HTMLタグ」の content の値
     // googleSiteVerification: "XXXXXXXX",

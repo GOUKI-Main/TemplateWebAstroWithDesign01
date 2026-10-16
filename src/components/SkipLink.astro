@@ -2,11 +2,11 @@
 // Padding is applied under `focus:`, not unconditionally: `not-sr-only`
 // compiles to `padding: 0` and outranks a plain `px-*`/`py-*` utility, so an
 // unprefixed padding class is dead here and the revealed link would hug its
-// own border.
+// own border. z-[60]: above the sticky header (z-50), below the loader.
 ---
 
 <a
   href="#main"
-  class="tap-target sr-only rounded-lg border border-border bg-bg focus:not-sr-only focus:absolute focus:left-4 focus:top-4 focus:z-50 focus:px-3 focus:py-2"
+  class="tap-target sr-only border border-border bg-bg text-fg focus:not-sr-only focus:absolute focus:top-4 focus:left-4 focus:z-[60] focus:px-3 focus:py-2"
   >本文へスキップ</a
 >

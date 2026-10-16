@@ -2,33 +2,31 @@
 // Accessible FAQ using native <details>/<summary>. (§7)
 // NOTE: Google removed FAQ rich results (2026-05), so this is for user value
 // and page understanding — not for a rich-result snippet. No FAQPage JSON-LD.
+// The <summary> is already a full-width row, so it does not take tap-target.
 type QA = { q: string; a: string };
-const { items, heading = "よくある質問" } = Astro.props as {
-  items: QA[];
-  heading?: string;
-};
+const { items } = Astro.props as { items: QA[] };
 ---
 
-<section class="mt-14" aria-labelledby="faq-heading">
-  <h2 id="faq-heading" class="text-xl font-semibold tracking-tight">
-    {heading}
-  </h2>
-  <div class="mt-4 border-t border-border">
-    {
-      items.map((item) => (
-        <details class="group border-b border-border">
-          <summary class="flex cursor-pointer items-center justify-between gap-4 py-4 font-medium marker:content-['']">
-            {item.q}
-            <span
-              class="text-muted transition-transform group-open:rotate-45"
-              aria-hidden="true"
-            >
-              +
+<div class="border-t border-border">
+  {
+    items.map((item) => (
+      <details class="group border-b border-border">
+        <summary class="flex cursor-pointer list-none items-start justify-between gap-6 py-6 marker:content-['']">
+          <span class="h-item flex gap-4">
+            <span class="text-accent" aria-hidden="true">
+              Q
             </span>
-          </summary>
-          <p class="pb-4 text-muted">{item.a}</p>
-        </details>
-      ))
-    }
-  </div>
-</section>
+            {item.q}
+          </span>
+          <span
+            class="mt-1 shrink-0 text-[1.1rem] leading-none text-subtle transition-transform duration-300 group-open:rotate-45"
+            aria-hidden="true"
+          >
+            +
+          </span>
+        </summary>
+        <p class="body-text m-0 max-w-2xl pb-7 pl-8">{item.a}</p>
+      </details>
+    ))
+  }
+</div>

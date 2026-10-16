@@ -1,49 +1,117 @@
 ---
 import Base from "../layouts/Base.astro";
+import PageHead from "../components/ui/PageHead.astro";
+import Section from "../components/ui/Section.astro";
 import BusinessInfo from "../components/BusinessInfo.astro";
 import { site } from "../content/site";
+import { displayHours, displayTel, telHref } from "../lib/display";
 
-// Contact channels all come from site.ts (contactFormUrl, author.email; the
-// phone number is rendered by <BusinessInfo> with the rest of the NAP); this
-// page only decides the order. No form JS is shipped — an external form is a
-// plain link.
+// Contact channels all come from site.ts (contactFormUrl, author.email,
+// business.telephone); this page only decides the order. No form JS is
+// shipped — an external form is a plain link.
 // TODO(setup): Q7 問い合わせ方法の優先順位と、返信の目安などの案内文
 const title = "お問い合わせ";
 const description = `${site.name}へのお問い合わせ方法のご案内です。`;
+const lead = "ご質問・ご相談はお気軽にどうぞ。通常2営業日以内にご返信します。";
+
+const breadcrumbs = [
+  { name: "ホーム", url: new URL("/", Astro.site).toString() },
+  { name: title, url: new URL("/contact", Astro.site).toString() },
+];
+
+const tel = site.business?.telephone;
+const hours = site.business?.openingHours?.map(displayHours).join(" ／ ");
+
+// 窓口を並べる。上から順に優先度が高い。
+const channels: {
+  label: string;
+  value: string;
+  note?: string;
+  href: string;
+  external?: boolean;
+}[] = [
+  ...(site.contactFormUrl
+    ? [
+        {
+          label: "フォーム",
+          value: "お問い合わせフォームを開く",
+          note: "24時間受け付けています",
+          href: site.contactFormUrl,
+          external: true,
+        },
+      ]
+    : []),
+  ...(site.author.email
+    ? [
+        {
+          label: "メール",
+          value: site.author.email,
+          href: `mailto:${site.author.email}`,
+        },
+      ]
+    : []),
+  ...(tel
+    ? [
+        {
+          label: "電話",
+          value: displayTel(tel),
+          note: hours,
+          href: telHref(tel),
+        },
+      ]
+    : []),
+];
 ---
 
-<Base title={title} description={description} canonicalPath="/contact">
-  <article class="prose">
-    <h1>{title}</h1>
+<Base
+  title={title}
+  description={description}
+  canonicalPath="/contact"
+  breadcrumbs={breadcrumbs}
+  mobileBar={false}
+>
+  <PageHead title={title} lead={lead} breadcrumbs={breadcrumbs} />
 
-    <p class="lead">
-      ご質問・ご相談はお気軽にどうぞ。通常2営業日以内にご返信します。
-    </p>
-
-    {
-      site.contactFormUrl && (
-        <>
-          <h2>フォームから</h2>
-          <p>
-            <a href={site.contactFormUrl} target="_blank" rel="noopener">
-              お問い合わせフォームを開く
+  <Section space="sm">
+    <ul
+      data-reveal-child="0.08"
+      class="m-0 grid list-none gap-3 p-0 sm:grid-cols-2 lg:grid-cols-3"
+    >
+      {
+        channels.map((c, i) => (
+          <li>
+            <a
+              href={c.href}
+              target={c.external ? "_blank" : undefined}
+              rel={c.external ? "noopener" : undefined}
+              class:list={[
+                "flex h-full flex-col gap-2 border px-6 py-7 no-underline transition-colors",
+                i === 0
+                  ? "border-primary bg-surface hover:border-accent"
+                  : "border-border-strong hover:border-fg",
+              ]}
+            >
+              <span class="eyebrow">{c.label}</span>
+              <span class="mincho tabular text-[1.05rem] text-fg">
+                {c.value}
+              </span>
+              {c.note && (
+                <span class="text-[0.75rem] text-subtle">{c.note}</span>
+              )}
             </a>
-          </p>
-        </>
-      )
-    }
+          </li>
+        ))
+      }
+    </ul>
+  </Section>
 
-    {
-      site.author.email && (
-        <>
-          <h2>メールで</h2>
-          <p>
-            <a href={`mailto:${site.author.email}`}>{site.author.email}</a>
-          </p>
-        </>
-      )
-    }
-
-    <BusinessInfo />
-  </article>
+  {
+    site.business && (
+      <Section eyebrow="所在地・営業時間" rule>
+        <div data-reveal class="max-w-3xl">
+          <BusinessInfo />
+        </div>
+      </Section>
+    )
+  }
 </Base>

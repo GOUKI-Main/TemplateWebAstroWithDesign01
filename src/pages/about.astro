@@ -1,25 +1,95 @@
 ---
+import { Image } from "astro:assets";
 import Base from "../layouts/Base.astro";
+import Breadcrumbs from "../components/Breadcrumbs.astro";
+import Section from "../components/ui/Section.astro";
 import BusinessInfo from "../components/BusinessInfo.astro";
+import CtaBand from "../components/CtaBand.astro";
 import { site } from "../content/site";
+// TODO(setup): Q10 このページの写真
+import photo from "../assets/images/sample/sample-2.jpg";
 
 // TODO(setup): Q11 「私たちについて」— 想い・経歴・代表あいさつ・沿革など
 const title = "私たちについて";
 const description = `${site.name}について。私たちの想いと、大切にしていることをご紹介します。`;
+
+const breadcrumbs = [
+  { name: "ホーム", url: new URL("/", Astro.site).toString() },
+  { name: title, url: new URL("/about", Astro.site).toString() },
+];
 ---
 
-<Base title={title} description={description} canonicalPath="/about">
-  <article class="prose">
-    <h1>{title}</h1>
+<Base
+  title={title}
+  description={description}
+  canonicalPath="/about"
+  breadcrumbs={breadcrumbs}
+>
+  <div class="container-page pt-8 md:pt-12">
+    <Breadcrumbs items={breadcrumbs} />
+  </div>
 
-    <p class="lead">{site.name}は、〇〇のために〇〇を提供しています。</p>
+  <section class="mt-6 border-y border-border">
+    <div class="grid lg:grid-cols-2 lg:items-stretch">
+      <figure
+        data-img-reveal
+        class="m-0 aspect-[4/3] overflow-hidden lg:aspect-auto"
+      >
+        <Image
+          data-img-inner
+          src={photo}
+          alt="サンプル画像。差し替える写真の内容をここに書く"
+          widths={[540, 900, 1300]}
+          sizes="(min-width: 1024px) 50vw, 100vw"
+          loading="eager"
+          fetchpriority="high"
+          class="h-full w-full object-cover"
+        />
+      </figure>
 
-    <h2>私たちの想い</h2>
-    <p>はじめた理由や、お客様に約束していることをここに書きます。</p>
+      <div class="flex items-center px-5 py-14 md:px-10 md:py-20 lg:px-14">
+        <div>
+          <p data-reveal class="eyebrow m-0 mb-6">{title}</p>
+          <h1 data-reveal class="h-display m-0">
+            想いを伝える<br />見出しを、二行で。
+          </h1>
+          <p
+            data-reveal
+            data-reveal-delay="0.08"
+            class="body-text mt-8 max-w-md"
+          >
+            {site.name}は、〇〇のために〇〇を提供しています。
+          </p>
+        </div>
+      </div>
+    </div>
+  </section>
 
-    <h2>代表あいさつ</h2>
-    <p>{site.author.name}からのメッセージをここに書きます。</p>
+  <Section eyebrow="私たちの想い">
+    <div data-reveal class="prose max-w-2xl">
+      <p>はじめた理由や、お客様に約束していることをここに書きます。</p>
+      <p>
+        段落は短めに区切ると読みやすくなります。数字や実績を書くときは、事実だけを書きます。
+      </p>
+    </div>
+  </Section>
 
-    <BusinessInfo />
-  </article>
+  <Section eyebrow="代表あいさつ" rule>
+    <div data-reveal class="prose max-w-2xl">
+      <p>{site.author.name}からのメッセージをここに書きます。</p>
+      <p class="text-right">{site.author.name}</p>
+    </div>
+  </Section>
+
+  {
+    site.business && (
+      <Section eyebrow="概要" rule>
+        <div data-reveal class="max-w-3xl">
+          <BusinessInfo />
+        </div>
+      </Section>
+    )
+  }
+
+  <CtaBand />
 </Base>

@@ -8,24 +8,32 @@
     "node": ">=22.12.0"
   },
   "scripts": {
+    "fonts": "node scripts/build-fonts.mjs",
+    "predev": "node scripts/build-fonts.mjs",
     "dev": "astro dev",
+    "prebuild": "node scripts/build-fonts.mjs",
     "build": "astro build",
+    "postbuild": "node scripts/verify-fonts.mjs",
     "preview": "astro preview",
     "check": "astro check",
     "test": "vitest run",
     "test:watch": "vitest",
     "check:links": "node scripts/check-links.mjs",
+    "check:jsonld": "node scripts/check-jsonld.mjs",
+    "verify:fonts": "node scripts/verify-fonts.mjs",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "check:setup": "node scripts/check-setup.mjs",
-    "images": "node scripts/generate-images.mjs",
-    "check:jsonld": "node scripts/check-jsonld.mjs"
+    "images": "node scripts/generate-images.mjs"
   },
   "dependencies": {
     "@astrojs/sitemap": "^3.7.4",
+    "@fontsource/noto-sans-jp": "^5.3.1",
+    "@fontsource/zen-old-mincho": "^5.3.1",
     "@tailwindcss/typography": "^0.5.20",
     "@tailwindcss/vite": "^4.3.3",
     "astro": "^7.3.7",
+    "gsap": "^3.15.0",
     "sharp": "^0.35.5",
     "tailwindcss": "^4.3.3"
   },

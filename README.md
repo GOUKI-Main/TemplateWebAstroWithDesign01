@@ -1,8 +1,8 @@
 # TemplateWebAstro
 
-A boring, production-ready Astro **website template** — HTML-first, ~2 kB of
-runtime JavaScript, and wired for marketing/SEO out of the box. Static pages
-only: there is no blog.
+A production-ready Astro **website template with a finished design** —
+HTML-first, quiet GSAP motion, self-hosted Japanese web fonts, and wired for
+marketing/SEO out of the box. Static pages only: there is no blog.
 
 ## Make a site from this template (日本語)
 
@@ -122,12 +122,10 @@ Never put a real secret in this file.
 
 **Performance & a11y**
 
-- ~2 kB of runtime JS (link prefetching only — see [Runtime
-  JavaScript](#runtime-javascript)); system fonts only — no web-font
-  download, no font license to ship
+- Motion and prefetch only — see [Runtime JavaScript](#runtime-javascript);
+  self-hosted fonts subset to the characters actually used
 - Long-term immutable caching for hashed assets (`public/_headers` →
   `/_astro/*`)
-- Dark mode from the OS preference, no toggle and no flash of the wrong theme
 - Semantic HTML; skip link; `aria-current` on active nav/crumb; JS-free mobile
   menu (`<details>`); `prefers-reduced-motion` respected
 - Mobile-hardened: no horizontal page scroll at 320px, 44px touch targets on
@@ -184,18 +182,39 @@ Four rules keep it that way — break one and the phone layout goes with it:
    the viewport as if the URL bar were hidden, which leaves the footer below the
    fold on short pages.
 
-4. **The mobile menu is a `<details>` disclosure** with `max-h-[75dvh]` and its
+4. **The mobile menu is a `<details>` disclosure** with a `dvh`-capped height and its
    own scroll, so a long nav stays usable on a short or landscape screen.
+
+## Design（デザイン「余白」）
+
+This template ships with a finished look, ported from a demo site:
+
+- **Palette** — lime-plaster ground `#F2F0EB`, ink `#141414`, deep green
+  `#24382F` as the dominant color, brass `#A98C4B` as a single accent
+  (reserved for the one most important action on a screen). Light only.
+- **Type** — headings in Zen Old Mincho, body in Noto Sans JP, both
+  self-hosted (see below).
+- **Form** — no rounded corners, no shadows; sections are separated by thin
+  rules and whitespace only.
+- **Motion** — a louver-style loader (first visit only), four scroll reveals,
+  and a hero photo carousel, all GSAP.
+
+Sample images in `src/assets/images/sample/` are abstract placeholders meant to
+be replaced during setup.
 
 ## Runtime JavaScript
 
-One module, ~2.3 kB, on every page: Astro's link prefetcher
-(`prefetch: { prefetchAll: true, defaultStrategy: "hover" }` in
-`astro.config.mjs`). Nothing else ships JS — the mobile menu, the FAQ and dark
-mode are all CSS/HTML.
+- Astro's link prefetcher (~2.3 kB; `prefetch` in `astro.config.mjs`)
+- GSAP motion (~45 kB gzipped, one module): `src/scripts/loader.ts`,
+  `motion.ts` (`data-reveal` / `data-reveal-child` / `data-rule` /
+  `data-img-reveal`), `hero.ts`
+- A tiny inline script that marks `<html class="js-ready">` (so elements are
+  hidden only when JS will reveal them) and closes the mobile menu on an
+  outside tap
 
-Delete the `prefetch` block for a strictly zero-JS build, or keep the runtime
-and opt individual links in with `data-astro-prefetch`.
+Everything is readable without JavaScript and under
+`prefers-reduced-motion: reduce`. The menu and FAQ are `<details>`. Removal
+recipes are in `FEATURES.md` §3.3.
 
 ## Styling (Tailwind 4)
 
@@ -204,56 +223,64 @@ inside an `@theme` block and become **both** CSS variables and utilities:
 
 ```css
 @theme {
-  --color-bg: #fbfbf9; /* -> bg-bg / text-bg / border-bg ... */
-  --color-fg: #1a1a1a;
-  --color-link: #0b3d91;
+  --color-bg: #f2f0eb; /* -> bg-bg / text-bg / border-bg ... */
+  --color-fg: #141414;
+  --color-primary: #24382f;
+  --color-accent: #a98c4b;
+  /* derived: color-mix() from the base colors */
+  --color-muted: color-mix(in srgb, var(--color-fg) 72%, transparent);
 }
 ```
 
-**Use only these tokens** (`bg-bg`, `text-fg`, `text-muted`, `border-border`,
-`bg-surface`, `text-link`). A raw hex or a stock Tailwind color like
-`text-gray-700` will not follow dark mode.
-
-### Dark mode
-
-Driven purely by `prefers-color-scheme`: the media query redefines the same
-`--color-*` variables, so every utility re-themes at once. No toggle, no
-`localStorage`, no inline script, and therefore no flash of the wrong theme.
-`<meta name="theme-color">` is emitted twice (light/dark) from
-`site.seo.themeColor` / `themeColorDark` — keep those in sync with `--color-bg`.
+To re-color the site, change the nine **base colors** only; the derived ones
+(`muted`, `subtle`, `border`, `on-primary-muted`, …) follow automatically.
+**Use only these tokens** — a raw hex or a stock Tailwind color like
+`text-gray-700` will not follow a palette change. Component utilities
+(`btn-accent`, `btn-primary`, `btn-line`, `h-display`, `h-section`, `eyebrow`,
+`body-text`, `link-rule`, `spec-row`, …) live in the same file. Keep
+`site.seo.themeColor` in sync with `--color-bg`.
 
 ### Page copy
 
-`@tailwindcss/typography` styles page copy via `<article class="prose">`, and its
-`--tw-prose-*` variables are bound to the design tokens in `global.css` — so
-long-form copy is exactly the same color as the rest of the site, in both
-themes. Preflight replaces a hand-written reset.
+`@tailwindcss/typography` styles long-form copy via `prose`, and its
+`--tw-prose-*` variables are bound to the design tokens in `global.css`, with
+Mincho headings. Preflight replaces a hand-written reset.
 
 ## 日本語フォント
 
-No web font is bundled: `--font-sans` in `global.css` is a system stack
-(`Hiragino Sans`, `Noto Sans JP`, `Yu Gothic`, `Meiryo`, …), so there is
-nothing to download and no font license to distribute. If typography must be
-identical across devices, add a font through Astro's Fonts API (`fonts` in
-`astro.config.mjs` + `<Font>` in `SEO.astro`) and ship its license file
-(e.g. SIL OFL) next to the font files.
+Zen Old Mincho (headings) and Noto Sans JP (body) are self-hosted from the
+Fontsource npm packages — no request to Google Fonts or a CDN.
+`scripts/build-fonts.mjs` runs before `dev`/`build`, counts the characters used
+under `src/`, and writes only the woff2 unicode-range chunks that intersect
+them (`src/assets/fonts/`, `src/styles/fonts.css`; both git-ignored).
+`scripts/verify-fonts.mjs` runs after `build` and fails it if any character in
+the output HTML is not covered. Both fonts are SIL OFL 1.1 (license text in
+each `node_modules/@fontsource/*` package). To change a face, swap the
+`ENTRIES` in `build-fonts.mjs` and the family names in `--font-sans` /
+`--font-mincho`.
 
 ## Project structure
 
 ```
 src/
-├─ components/   Header, NavLinks, Footer, SEO, SkipLink, Cloudflare,
-│                Breadcrumbs, FAQ, BusinessInfo
+├─ components/   Header, Footer, MobileBar, Hero, Loader, CtaBand,
+│                InlineCta, SEO, SkipLink, Cloudflare, Breadcrumbs, FAQ,
+│                BusinessInfo, ui/ (Section, PageHead)
 ├─ content/      site.ts (config)
 ├─ layouts/      Base.astro (head + JSON-LD graph + shell)
 ├─ lib/          seo/jsonld.ts (graph builders), noindex.ts (path match
-│                shared by meta robots + sitemap) — each with a *.test.ts
+│                shared by meta robots + sitemap) — each with a *.test.ts;
+│                display.ts (phone / hours / address for the screen)
+├─ scripts/      GSAP motion: loader.ts, motion.ts, hero.ts
 ├─ pages/        index, about, contact, legal, 404,
 │                robots.txt, site.webmanifest
-├─ assets/       fonts/ (and images/ for your photos — optimized at build)
-└─ styles/       global.css (@theme tokens, dark mode, prose bindings)
+├─ assets/       images/ (your photos + sample/ placeholders — optimized at
+│                build), fonts/ (generated)
+└─ styles/       global.css (@theme tokens, component utilities, motion
+                 initial states, prose bindings), fonts.css (generated)
 
-scripts/         check-links.mjs (internal link check over dist/),
+scripts/         build-fonts.mjs / verify-fonts.mjs (font subsetting + check),
+                 check-links.mjs (internal link check over dist/),
                  check-setup.mjs (template placeholders left),
                  generate-images.mjs (icons / OG image)
 CLAUDE.md        setup interview + design constraints for AI agents

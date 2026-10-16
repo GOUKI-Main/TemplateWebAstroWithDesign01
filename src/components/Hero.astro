@@ -1,0 +1,248 @@
+---
+// ヒーロー。背景に写真のカルーセルを敷く（動きは src/scripts/hero.ts）。
+//
+// 割り付けはローダーと同じ縦ルーバー。ただし写真そのものは切らない。
+// 単色の縦格子が上から下りて写真を覆い、覆われているあいだに次の一枚へ差し替え、
+// そのまま下へ抜ける。毎フレーム動かすのが単色の帯だけになるので、写真を
+// 格子ごとに切り分けて一枚ずつ動かすより、はるかに軽い。
+//
+// 写真が1枚なら送りの目印は出さず、静止画のヒーローになる。
+import type { ImageMetadata } from "astro";
+import { getImage } from "astro:assets";
+
+export type HeroSlide = {
+  image: ImageMetadata;
+  /** 帯に出す写真の名前。リンク先があれば押せる。 */
+  label: string;
+  /** 名前の下の小さな補足（場所・特徴など）。 */
+  meta?: string;
+  href?: string;
+};
+
+export type HeroAction = {
+  label: string;
+  href: string;
+  /** 差し色の面（ページの主導線）か、罫線だけか。 */
+  tone?: "accent" | "line";
+  external?: boolean;
+};
+
+type Props = {
+  /** 見出しの上の小さな一行（地域・業種など）。 */
+  eyebrow?: string;
+  /** 見出し。1要素 = 1行。行ごとに下から現れる。HTML を書ける
+   *  （一語だけ差し色にするなら <span class="hero-em">30</span>）。 */
+  lines: string[];
+  lead?: string;
+  actions?: HeroAction[];
+  slides: HeroSlide[];
+};
+
+const { eyebrow, lines, lead, actions = [], slides } = Astro.props;
+
+/** 格子の本数。ローダー（14本）より粗く取り、写真が読める幅を残す。 */
+const BARS = 10;
+
+// 背景は CSS の background-image で持つ。全面に敷くだけなので <img> の
+// srcset は要らず、幅は二段あれば足りる。
+const sources = await Promise.all(
+  slides.map(async (s) => ({
+    sm: (
+      await getImage({ src: s.image, width: 960, format: "webp", quality: 68 })
+    ).src,
+    lg: (
+      await getImage({ src: s.image, width: 1536, format: "webp", quality: 66 })
+    ).src,
+  })),
+);
+
+const bars = Array.from({ length: BARS }, (_, i) => i);
+const pad = (n: number) => String(n).padStart(2, "0");
+const many = slides.length > 1;
+---
+
+<section
+  data-hero
+  class="hero relative isolate flex flex-col justify-end overflow-hidden bg-primary-deep text-on-primary"
+>
+  <!-- 写真。一枚が一要素。表に出ている一枚だけ visible にする。 -->
+  <div class="absolute inset-0 z-0" aria-hidden="true">
+    {
+      slides.map((_, index) => (
+        <div
+          data-hero-slide
+          data-hero-index={index}
+          class="hero-slide"
+          style={
+            // 一枚目だけ先に読ませる。二枚目以降は表示後にスクリプトが渡す。
+            index === 0
+              ? `--img-sm:url(${sources[0].sm});--img-lg:url(${sources[0].lg})`
+              : undefined
+          }
+          data-bg-sm={index === 0 ? undefined : sources[index].sm}
+          data-bg-lg={index === 0 ? undefined : sources[index].lg}
+        />
+      ))
+    }
+  </div>
+
+  <!-- 幕。写真の上に支配色を薄く敷き、字を読ませる。 -->
+  <div class="hero-veil absolute inset-0 z-1" aria-hidden="true"></div>
+
+  <!-- 縦格子。写真の差し替えは、これが覆っているあいだに起きる。 -->
+  <div class="absolute inset-0 z-2 flex" aria-hidden="true">
+    {bars.map(() => <div data-hero-bar class="hero-bar" />)}
+  </div>
+
+  <!-- 本文 -->
+  <div class="container-page relative z-10 pt-28 pb-9 md:pt-44 md:pb-12">
+    {
+      eyebrow && (
+        <p
+          data-hero-fade
+          class="eyebrow m-0 flex items-center gap-4 text-on-primary-subtle"
+        >
+          <span
+            data-hero-accent
+            class="block h-px w-10 origin-left bg-accent"
+          />
+          {eyebrow}
+        </p>
+      )
+    }
+
+    <h1 class="h-hero m-0 mt-7 md:mt-9">
+      {
+        lines.map((line) => (
+          <span class="hero-line">
+            <span data-hero-line set:html={line} />
+          </span>
+        ))
+      }
+    </h1>
+
+    {
+      lead && (
+        <p data-hero-fade class="body-text mt-8 max-w-lg text-on-primary-muted">
+          {lead}
+        </p>
+      )
+    }
+
+    {
+      actions.length > 0 && (
+        <div
+          data-hero-fade
+          class="mt-11 flex max-w-md flex-col gap-3 sm:max-w-none sm:flex-row"
+        >
+          {actions.map((a) => (
+            <a
+              href={a.href}
+              target={a.external ? "_blank" : undefined}
+              rel={a.external ? "noopener" : undefined}
+              class={a.tone === "line" ? "btn-line-on-primary" : "btn-accent"}
+            >
+              {a.label}
+            </a>
+          ))}
+        </div>
+      )
+    }
+  </div>
+
+  <!-- 帯。いま出ている写真の名前と、送り。 -->
+  <div
+    data-hero-fade
+    class="container-page relative z-10 border-t border-border-on-primary py-4 md:py-5"
+  >
+    <div
+      class="flex flex-col gap-2.5 sm:flex-row sm:items-end sm:justify-between sm:gap-6"
+    >
+      <div class="min-w-0 sm:flex-1">
+        <div class="hero-swap">
+          {
+            slides.map((s, index) =>
+              s.href ? (
+                <a
+                  data-hero-caption
+                  data-hero-index={index}
+                  href={s.href}
+                  class="hero-swap-item block truncate text-[0.8rem] tracking-[0.06em] text-on-primary no-underline transition-colors hover:text-accent"
+                >
+                  {s.label}
+                </a>
+              ) : (
+                <p
+                  data-hero-caption
+                  data-hero-index={index}
+                  class="hero-swap-item m-0 truncate text-[0.8rem] tracking-[0.06em] text-on-primary"
+                >
+                  {s.label}
+                </p>
+              ),
+            )
+          }
+        </div>
+        <div class="hero-swap mt-1.5">
+          {
+            slides.map((s, index) => (
+              <p
+                data-hero-meta
+                data-hero-index={index}
+                class="hero-swap-item m-0 min-h-[1.6em] truncate text-[0.7rem] tracking-[0.14em] text-on-primary-subtle"
+              >
+                {s.meta}
+              </p>
+            ))
+          }
+        </div>
+      </div>
+
+      {
+        many && (
+          <div class="flex shrink-0 items-center justify-between gap-5 sm:justify-end">
+            <p
+              class="tabular m-0 flex items-center gap-1 text-[0.7rem] tracking-[0.14em] text-on-primary-subtle"
+              aria-hidden="true"
+            >
+              <span class="hero-odo">
+                <span data-hero-odo class="block">
+                  {slides.map((_, index) => (
+                    <span class="block text-on-primary">{pad(index + 1)}</span>
+                  ))}
+                </span>
+              </span>
+              <span>/ {pad(slides.length)}</span>
+            </p>
+
+            <div class="flex items-center gap-1">
+              {slides.map((s, index) => (
+                <button
+                  type="button"
+                  data-hero-dot
+                  data-hero-index={index}
+                  class="hero-dot"
+                  aria-label={`${index + 1}枚目：${s.label}`}
+                >
+                  <span data-hero-dot-fill class="hero-dot-fill" />
+                </button>
+              ))}
+            </div>
+          </div>
+        )
+      }
+    </div>
+  </div>
+
+  <noscript>
+    <style>
+      /* スクリプトが動かないときは、一枚目を静止画として出す（格子は CSS の
+         素の位置で既に退いている）。送りの目印は押しても効かないので隠す。 */
+      [data-hero-caption]:not([data-hero-index="0"]),
+      [data-hero-meta]:not([data-hero-index="0"]),
+      [data-hero-dot] {
+        display: none;
+      }
+    </style>
+  </noscript>
+</section>
