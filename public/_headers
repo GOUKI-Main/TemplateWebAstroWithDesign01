@@ -25,13 +25,19 @@
 #
 #   style-src の 'unsafe-inline': Astro が小さな CSS を <style> として head に直接出力する
 #   script-src の cloudflareinsights.com: Cloudflare Web Analytics のビーコン
+#   script-src の 'sha256-…': HTML に直接出る小さなスクリプト2つ
+#     （Base.astro の js-ready、Header.astro のメニューを閉じる処理。Astro が
+#     小さいスクリプトをインライン化する）。どちらかを書き換えたらハッシュも
+#     変わるので、`pnpm build` 後に dist/index.html のインライン <script> から
+#     計算し直すこと。ハッシュが合わないと、演出の初期状態が付かない
+#     （= 動きなしで全部見えている）だけで、ページ自体は壊れない。
 #   (JSON-LD の <script type="application/ld+json"> は実行されないため CSP 対象外)
 #
 # 外部の埋め込み(YouTube・フォーム・タグマネージャ等)を足したら、
 # その都度 frame-src / script-src / connect-src を広げること。
 #
 # /*
-#   Content-Security-Policy: default-src 'self'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'; object-src 'none'; img-src 'self' data:; font-src 'self'; style-src 'self' 'unsafe-inline'; script-src 'self' https://static.cloudflareinsights.com; connect-src 'self' https://cloudflareinsights.com; upgrade-insecure-requests
+#   Content-Security-Policy: default-src 'self'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'; object-src 'none'; img-src 'self' data:; font-src 'self'; style-src 'self' 'unsafe-inline'; script-src 'self' 'sha256-BHwFKL25y/KOUDnvXATpMxky+YMdjUO8I3LIVwBSTqA=' 'sha256-VdLlyYufB+cza+RBzIVGf9XvYItoA0Z3Ad2ApZzcDa0=' https://static.cloudflareinsights.com; connect-src 'self' https://cloudflareinsights.com; upgrade-insecure-requests
 
 # /_astro/* はコンテンツハッシュ付きファイル名(CSS・画像・フォント)。
 # 内容が変わればURLも変わるので、1年 + immutable で安全にキャッシュできる。

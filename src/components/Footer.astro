@@ -1,8 +1,16 @@
 ---
 import { site } from "../content/site";
+import {
+  displayAddress,
+  displayHours,
+  displayTel,
+  telHref,
+} from "../lib/display";
 
 const { author } = site;
+const b = site.business;
 const year = new Date().getFullYear();
+const address = displayAddress(b?.address);
 
 // Brand profiles (site.sameAs) first, then the author's own; de-duplicated so
 // the same account listed in both places renders once. Labels come from the
@@ -15,6 +23,7 @@ const LABELS: Record<string, string> = {
   "youtube.com": "YouTube",
   "tiktok.com": "TikTok",
   "line.me": "LINE",
+  "lin.ee": "LINE",
   "note.com": "note",
   "github.com": "GitHub",
   "linkedin.com": "LinkedIn",
@@ -30,7 +39,7 @@ const profiles = [
   ]),
 ];
 
-// One list, one rendering: policy pages, mail, then external profiles.
+// 右の列: 規約などのページ、メール、公式アカウントの順に一本の並びで。
 const links: { label: string; href: string; external?: boolean }[] = [
   ...(site.footerNav ?? []),
   ...(author.email
@@ -44,29 +53,96 @@ const links: { label: string; href: string; external?: boolean }[] = [
 ];
 ---
 
-<footer class="border-t border-border">
-  <div
-    class="container-page flex flex-col items-start gap-2 py-6 text-sm text-muted sm:flex-row sm:items-center sm:justify-between sm:gap-4"
-  >
-    <p class="m-0">
+<footer class="mt-auto bg-primary-deep text-on-primary">
+  <div class="container-page py-16 md:py-20">
+    <div class="grid gap-12 md:grid-cols-[1.2fr_1fr_1fr]">
+      <div>
+        <p class="mincho m-0 text-[1.15rem] tracking-[0.2em]">{site.name}</p>
+        {
+          address && (
+            <p class="m-0 mt-5 text-[0.8rem] leading-[2] text-on-primary-muted">
+              {address}
+            </p>
+          )
+        }
+        {
+          b?.telephone && (
+            <a
+              href={telHref(b.telephone)}
+              class="tabular mincho mt-6 block text-[1.5rem] tracking-[0.05em] text-on-primary no-underline"
+            >
+              {displayTel(b.telephone)}
+            </a>
+          )
+        }
+        {
+          b?.openingHours?.length ? (
+            <p class="m-0 mt-1 text-[0.75rem] text-on-primary-subtle">
+              {b.openingHours.map(displayHours).join(" ／ ")}
+            </p>
+          ) : null
+        }
+        {
+          !b && (
+            <p class="m-0 mt-5 max-w-xs text-[0.8rem] leading-[2] text-on-primary-muted">
+              {site.tagline}
+            </p>
+          )
+        }
+      </div>
+
+      <nav aria-label="サイト内リンク">
+        <p class="eyebrow m-0 text-on-primary-subtle">ページ</p>
+        <ul class="m-0 mt-4 list-none space-y-1 p-0">
+          {
+            site.nav.map((item) => (
+              <li>
+                <a
+                  href={item.href}
+                  class="tap-target text-[0.8rem] text-on-primary-muted no-underline transition-colors hover:text-on-primary"
+                >
+                  {item.label}
+                </a>
+              </li>
+            ))
+          }
+        </ul>
+      </nav>
+
+      {
+        links.length > 0 && (
+          <nav aria-label="規約・連絡先">
+            <p class="eyebrow m-0 text-on-primary-subtle">ご案内</p>
+            <ul class="m-0 mt-4 list-none space-y-1 p-0">
+              {links.map((link) => (
+                <li>
+                  <a
+                    href={link.href}
+                    target={link.external ? "_blank" : undefined}
+                    rel={link.external ? "noopener" : undefined}
+                    class="tap-target text-[0.8rem] text-on-primary-muted no-underline transition-colors hover:text-on-primary"
+                  >
+                    {link.label}
+                  </a>
+                </li>
+              ))}
+            </ul>
+          </nav>
+        )
+      }
+    </div>
+
+    <div
+      class="mt-14 flex flex-col gap-3 border-t border-border-on-primary pt-6 text-[0.75rem] text-on-primary-subtle sm:flex-row sm:items-center sm:justify-between"
+    >
       {
         /* The rights holder is the business, not the person running the site. */
       }
-      {`© ${year} ${site.business?.legalName ?? site.name}`}
-    </p>
-
-    <div class="flex flex-wrap gap-x-5 gap-y-1">
+      <p class="m-0">{`© ${year} ${b?.legalName ?? site.name}`}</p>
       {
-        links.map((link) => (
-          <a
-            class="tap-target text-muted no-underline hover:text-link"
-            href={link.href}
-            target={link.external ? "_blank" : undefined}
-            rel={link.external ? "noopener" : undefined}
-          >
-            {link.label}
-          </a>
-        ))
+        b?.areaServed?.length ? (
+          <p class="m-0">対応エリア：{b.areaServed.slice(0, 5).join("・")}</p>
+        ) : null
       }
     </div>
   </div>

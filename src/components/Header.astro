@@ -1,61 +1,149 @@
 ---
-import { site, type SiteNavItem } from "../content/site";
-import NavLinks from "./NavLinks.astro";
+import { site } from "../content/site";
+import { displayHours, displayTel, telHref } from "../lib/display";
 
-const { brand = site.name, nav = site.nav } = Astro.props as {
-  brand?: string;
-  nav?: SiteNavItem[];
-};
+const path = Astro.url.pathname;
+const isActive = (href: string) =>
+  href === "/" ? path === "/" : path === href || path.startsWith(`${href}/`);
+
+const tel = site.business?.telephone;
+// 狭い画面のメニューには主導線も並べる（ナビに同じ行き先があれば重ねない）。
+const menuItems = site.nav.some((item) => item.href === site.cta.href)
+  ? site.nav
+  : [...site.nav, site.cta];
 ---
 
 {
   /* sticky (not fixed) so the header keeps its own space in the flow — no
-     magic top padding on <main>. bg + z keep scrolled content from showing
-     through, and `sticky` is the positioned ancestor the mobile menu panel
-     anchors to. */
+     magic top padding on <main>. 下へスクロールすると隠れ、上へ戻すと出る
+     （src/scripts/motion.ts）。 */
 }
-<header class="sticky top-0 z-40 w-full border-b border-border bg-bg">
-  <div class="container-page flex items-center justify-between gap-4 py-4">
-    <a class="tap-target font-bold tracking-tight no-underline" href="/"
-      >{brand}</a
+<header
+  data-header
+  class="sticky top-0 z-50 w-full border-b border-border bg-bg/95 backdrop-blur-[2px]"
+>
+  <div class="container-page flex items-center justify-between gap-6 py-4">
+    <a
+      href="/"
+      class="tap-target mincho shrink-0 text-[1.05rem] tracking-[0.2em] text-fg no-underline"
+      >{site.name}</a
     >
 
-    {
-      /* One landmark, two renderings: a disclosure on small screens and an
-         inline row from md up. <details> gives an accessible, keyboard-
-         operable menu with zero JavaScript; navigating reloads the page,
-         which closes it. */
-    }
-    <nav aria-label="主要ナビゲーション">
-      <details class="md:hidden">
+    <nav aria-label="主要ナビゲーション" class="hidden lg:block">
+      <ul class="m-0 flex list-none items-center gap-7 p-0">
         {
-          /* list-none + marker:content-[''] look redundant next to
-             tap-target's `display: inline-flex` (which removes the marker box
-             outright) — they are the fallback if that display is ever
-             overridden, which is cheap insurance for the site's only
-             JavaScript-free navigation control. */
+          site.nav.map((item) => {
+            const active = isActive(item.href);
+            return (
+              <li>
+                <a
+                  href={item.href}
+                  aria-current={active ? "page" : undefined}
+                  class:list={[
+                    "tap-target border-b text-[0.8rem] tracking-[0.08em] no-underline transition-colors",
+                    active
+                      ? "border-accent text-fg"
+                      : "border-transparent text-muted hover:text-fg",
+                  ]}
+                >
+                  {item.label}
+                </a>
+              </li>
+            );
+          })
         }
-        <summary
-          class="tap-target cursor-pointer list-none rounded-lg border border-border px-3 text-sm marker:content-['']"
-        >
-          メニュー
-        </summary>
-        {
-          /* max-height so a long nav scrolls inside the panel instead of
-            running off a short (or landscape) phone screen. */
-        }
-        <div
-          class="absolute inset-x-0 top-full max-h-[75dvh] overflow-y-auto overscroll-contain border-b border-border bg-bg"
-        >
-          <div class="container-page py-2">
-            <NavLinks items={nav} block />
-          </div>
-        </div>
-      </details>
-
-      <div class="hidden md:block">
-        <NavLinks items={nav} />
-      </div>
+      </ul>
     </nav>
+
+    <div class="hidden shrink-0 items-center gap-3 lg:flex">
+      {
+        tel && (
+          <a
+            href={telHref(tel)}
+            class="tap-target tabular border border-border-strong px-3 py-2 text-[0.8rem] tracking-[0.04em] text-fg no-underline transition-colors hover:border-fg"
+          >
+            {displayTel(tel)}
+          </a>
+        )
+      }
+      <a
+        href={site.cta.href}
+        target={site.cta.external ? "_blank" : undefined}
+        rel={site.cta.external ? "noopener" : undefined}
+        class="btn-primary px-4 py-[0.7rem] text-[0.8rem]">{site.cta.label}</a
+      >
+    </div>
+
+    {
+      /* 狭い画面。ナビは <details> で開く（JS が無くても動く）。
+         list-none + marker:content-[''] look redundant next to tap-target's
+         `display: inline-flex` (which removes the marker box outright) —
+         they are the fallback if that display is ever overridden. */
+    }
+    <details class="group lg:hidden" data-menu>
+      <summary
+        class="tap-target cursor-pointer list-none gap-2 text-[0.8rem] tracking-[0.1em] text-fg marker:content-['']"
+      >
+        <span class="inline-flex w-4 flex-col gap-[4px]" aria-hidden="true">
+          <span class="h-px w-full bg-fg"></span>
+          <span class="h-px w-full bg-fg"></span>
+          <span class="h-px w-full bg-fg"></span>
+        </span>
+        <span class="group-open:hidden">メニュー</span>
+        <span class="hidden group-open:inline">閉じる</span>
+      </summary>
+
+      {
+        /* top-full of the sticky header (its positioned ancestor), so the
+           panel always starts right under it whatever its height. */
+      }
+      <div
+        class="absolute inset-x-0 top-full z-40 max-h-[calc(100dvh-4rem)] overflow-y-auto overscroll-contain border-b border-border bg-bg"
+      >
+        <ul class="m-0 list-none p-0">
+          {
+            menuItems.map((item) => (
+              <li class="border-b border-border-soft">
+                <a
+                  href={item.href}
+                  target={item.external ? "_blank" : undefined}
+                  rel={item.external ? "noopener" : undefined}
+                  aria-current={isActive(item.href) ? "page" : undefined}
+                  class="mincho block px-6 py-5 text-[0.95rem] text-fg no-underline"
+                >
+                  {item.label}
+                </a>
+              </li>
+            ))
+          }
+        </ul>
+        {
+          tel && (
+            <div class="px-6 py-6">
+              <a
+                href={telHref(tel)}
+                class="tabular mincho block text-[1.3rem] tracking-[0.06em] text-fg no-underline"
+              >
+                {displayTel(tel)}
+              </a>
+              {site.business?.openingHours?.length ? (
+                <p class="mt-1 text-[0.75rem] text-subtle">
+                  {site.business.openingHours.map(displayHours).join(" ／ ")}
+                </p>
+              ) : null}
+            </div>
+          )
+        }
+      </div>
+    </details>
   </div>
 </header>
+
+<script>
+  // 画面外をタップしたら閉じる（JS が無ければ、もう一度押して閉じる）。
+  const menu = document.querySelector<HTMLDetailsElement>("[data-menu]");
+  document.addEventListener("click", (event) => {
+    if (!menu?.open) return;
+    if (!menu.contains(event.target as Node)) menu.open = false;
+  });
+</script>

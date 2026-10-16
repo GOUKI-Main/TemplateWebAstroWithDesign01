@@ -1,0 +1,89 @@
+---
+// ローディング。縦ルーバー（縦格子）の割り付けを画面に持ち込む。
+// 地の色に主色の格子が上下から互い違いに閉じ、サイト名が現れ、格子ごと上へ抜ける。
+// 動きは src/scripts/loader.ts。初回訪問のときだけフルで見せる。
+//
+// 格子は JS ではなくここで出す。初期位置を CSS で決めておかないと、
+// スクリプトが動くまでの一瞬、地の色が出てしまうため。
+import { site } from "../content/site";
+
+const brand = site.name;
+// 名前の下に小さく添える一行。店舗・事務所の都道府県があればそれを出す。
+const caption = site.business?.address?.addressRegion ?? "";
+const COLUMNS = 14;
+const bars = Array.from({ length: COLUMNS }, (_, i) => i);
+---
+
+<div
+  data-loader
+  aria-hidden="true"
+  class="fixed inset-0 z-[100] overflow-hidden bg-bg"
+>
+  <div class="absolute inset-0">
+    {
+      bars.map((i) => (
+        <div
+          data-loader-bar
+          class="loader-bar absolute inset-y-0 bg-primary"
+          style={`left:${(i / COLUMNS) * 100}%;width:calc(${100 / COLUMNS}% + 1px)`}
+        />
+      ))
+    }
+  </div>
+
+  <div
+    class="relative z-10 flex h-full flex-col items-center justify-center gap-7 px-6"
+  >
+    <div
+      data-loader-rule
+      class="h-px w-[min(30rem,72vw)] origin-center scale-x-0 bg-accent"
+    >
+    </div>
+
+    <div class="flex flex-wrap justify-center">
+      {
+        [...brand].map((char) => (
+          <span class="block overflow-hidden">
+            <span
+              data-loader-char
+              class="mincho block translate-y-full text-[clamp(1.5rem,5vw,2.4rem)] leading-[1.4] tracking-[0.3em] whitespace-pre text-on-primary"
+            >
+              {char}
+            </span>
+          </span>
+        ))
+      }
+    </div>
+
+    {/* 空でも要素は置く（loader.ts が必ず動かす対象なので）。 */}
+    <div
+      data-loader-meta
+      class="min-h-[1em] text-[0.7rem] tracking-[0.32em] text-on-primary-subtle opacity-0"
+    >
+      {caption}
+    </div>
+  </div>
+</div>
+
+<style>
+  /* 互い違いに開いた状態から始める。閉じる動きはスクリプトが付ける。 */
+  .loader-bar {
+    transform: translateY(-100%);
+    will-change: transform;
+  }
+  .loader-bar:nth-child(even) {
+    transform: translateY(100%);
+  }
+</style>
+
+<noscript>
+  <style>
+    [data-loader] {
+      display: none;
+    }
+    html.is-loading,
+    html.is-loading body {
+      overflow: auto;
+    }
+  </style>
+</noscript>

@@ -1,0 +1,33 @@
+---
+/**
+ * 節と節のあいだに一本だけ差し込む細い導線帯。
+ * 左に一文、右にボタン一つ。ページ末尾の強い帯（CtaBand）とは役割を分ける。
+ */
+type Props = {
+  text: string;
+  label: string;
+  href: string;
+  /** 差し色の面にするか、罫線だけにするか。ページに差し色は一つまで。 */
+  tone?: "accent" | "line";
+};
+
+const { text, label, href, tone = "line" } = Astro.props;
+---
+
+<section class="border-y border-border bg-surface">
+  <div
+    class="container-page flex flex-col items-start gap-5 py-7 sm:flex-row sm:items-center sm:justify-between sm:gap-8"
+  >
+    <p data-reveal class="m-0 max-w-xl text-[0.85rem] leading-[1.9] text-muted">
+      {text}
+    </p>
+    <a
+      data-reveal
+      href={href}
+      class:list={[
+        "w-full shrink-0 text-center sm:w-auto",
+        tone === "accent" ? "btn-accent" : "btn-line",
+      ]}>{label}</a
+    >
+  </div>
+</section>

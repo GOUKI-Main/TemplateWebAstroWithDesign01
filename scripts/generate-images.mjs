@@ -89,8 +89,8 @@ async function ogFromText() {
   const name = field("name");
   const tagline = field("tagline");
   const css = await readFile(at("src/styles/global.css"), "utf8");
-  const bg = token(css, "bg") ?? "#fbfbf9";
-  const fg = token(css, "fg") ?? "#1a1a1a";
+  const bg = token(css, "bg") ?? "#f2f0eb";
+  const fg = token(css, "fg") ?? "#141414";
   const accent = token(css, "link") ?? fg;
   const font =
     "'Hiragino Sans','Hiragino Kaku Gothic ProN','Noto Sans CJK JP','Noto Sans JP','Yu Gothic','Meiryo','WenQuanYi Zen Hei',sans-serif";

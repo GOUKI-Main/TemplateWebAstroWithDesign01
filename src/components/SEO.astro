@@ -21,8 +21,7 @@ const {
   ogType = "website",
   article,
   jsonLd,
-  themeColor = site.seo.themeColor ?? "#fbfbf9",
-  themeColorDark = site.seo.themeColorDark,
+  themeColor = site.seo.themeColor,
 } = Astro.props as {
   title?: string;
   description: string;
@@ -36,7 +35,6 @@ const {
   article?: ArticleMeta;
   jsonLd?: JsonLd | JsonLd[];
   themeColor?: string;
-  themeColorDark?: string;
 };
 
 // Title template: "Page | Site"; home (no/own-name title) shows the site name alone. (§1)
@@ -65,25 +63,7 @@ const gscVerification = site.seo.googleSiteVerification;
 <meta name="description" content={description} />
 <link rel="canonical" href={canonical} />
 <meta name="robots" content={robots} />
-{/* Two media-scoped values so the browser chrome follows the OS palette. */}
-{
-  themeColorDark ? (
-    <>
-      <meta
-        name="theme-color"
-        content={themeColor}
-        media="(prefers-color-scheme: light)"
-      />
-      <meta
-        name="theme-color"
-        content={themeColorDark}
-        media="(prefers-color-scheme: dark)"
-      />
-    </>
-  ) : (
-    <meta name="theme-color" content={themeColor} />
-  )
-}
+<meta name="theme-color" content={themeColor} />
 {
   gscVerification && (
     <meta name="google-site-verification" content={gscVerification} />

@@ -22,6 +22,7 @@ const testSite: SiteConfig = {
     url: "https://example.com/author",
     socials: { x: "https://x.com/author" },
   },
+  cta: { label: "Contact", href: "/contact" },
   nav: [],
   seo: {
     logo: "/icon-512.png",

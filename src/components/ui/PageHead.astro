@@ -1,0 +1,37 @@
+---
+import Breadcrumbs, { type BreadcrumbItem } from "../Breadcrumbs.astro";
+
+// 下層ページの頭。パンくず、題と一文、その下に罫線。
+type Props = {
+  title: string;
+  lead?: string;
+  eyebrow?: string;
+  breadcrumbs?: BreadcrumbItem[];
+};
+
+const { title, lead, eyebrow, breadcrumbs } = Astro.props;
+---
+
+<div class="container-page pt-8 md:pt-12">
+  {breadcrumbs && <Breadcrumbs items={breadcrumbs} />}
+
+  <div class="max-w-3xl pt-6 pb-12 md:pt-10 md:pb-16">
+    {
+      eyebrow && (
+        <p data-reveal class="eyebrow m-0 mb-5">
+          {eyebrow}
+        </p>
+      )
+    }
+    <h1 data-reveal class="h-display m-0">{title}</h1>
+    {
+      lead && (
+        <p data-reveal data-reveal-delay="0.08" class="body-text mt-7 max-w-xl">
+          {lead}
+        </p>
+      )
+    }
+  </div>
+
+  <div data-rule class="h-px w-full origin-left bg-border"></div>
+</div>

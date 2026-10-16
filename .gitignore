@@ -29,3 +29,7 @@ Thumbs.db
 
 # Misc
 *.swp
+
+# 自動生成のフォント一式（scripts/build-fonts.mjs が毎ビルド書き出す）
+src/assets/fonts/
+src/styles/fonts.css

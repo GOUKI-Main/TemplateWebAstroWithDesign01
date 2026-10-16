@@ -3,6 +3,11 @@
 Astro 7 + Tailwind 4 の静的サイト**テンプレート**。Cloudflare Workers の静的
 アセットとして配信する。ブログ機能は持たない（固定ページだけのサイト）。
 
+**デザイン付き。** 既定のデザイン「余白」（石灰の地・墨の文字・墨緑の支配色・
+真鍮の差し色、見出し明朝／本文ゴシックの Web フォント、角丸0・影なし、GSAP の
+控えめな動き）が最初から組み込まれている。セットアップでは**このデザインを土台に
+色・書体を調整する**のが基本で、ゼロから見た目を作り直すことはしない。
+
 このファイルは2部構成:
 
 - **第1部 初期セットアップ** — テンプレートから作った直後に、利用者への質問
@@ -52,6 +57,7 @@ Astro 7 + Tailwind 4 の静的サイト**テンプレート**。Cloudflare Worke
 > どちらから始めますか？
 >
 > 1. **デザインから** — 色や雰囲気など、サイトの見た目を先に決める
+>    （既定のデザインのまま進めることもできる）
 > 2. **サイトの基本情報から** — サイト名・説明文・連絡先など（検索結果や
 >    SNSに出る情報）を先に決める
 
@@ -118,28 +124,40 @@ Q3 の答えから **キャッチコピー（20〜30字）** と **説明文（1
 - **おまかせ** — 定番の配色（落ち着いた紺 / 温かみのある茶・ベージュ / 爽やかな
   緑 / 上品な黒）から選んでもらう。Q1 が分かっていれば業種に合う案を先頭にする。
 
-集めた材料から **デザイン案を2つ** 作り、利用者向けの言葉で見せて選んでもらう:
+最初に「今のデザイン（余白: 石灰・墨緑・真鍮、見出し明朝）のままでよいか」を
+トップページのスクリーンショットで見せて確認する。「このままでよい」なら配色は
+書き換えず、Q9 の `TODO(setup)` を外すだけで終える。
 
-- 配色: 背景・文字・補助文字・リンク・枠線・面の6色を、ライトとダークの両方で
-  （色の名前 + 色コード。コントラスト 4.5:1 以上を Claude が計算して確認済みの
-  ものだけ出す）
-- 書体: すっきり（ゴシック）/ 上品（明朝）/ 見出しだけ明朝
-- 雰囲気のメモ: 余白・角の丸み・見出しの強さなど、トークンと既存の部品の
-  クラスで表現できる範囲で
+変えたい場合は、集めた材料から **配色案を2つ** 作り、利用者向けの言葉で見せて
+選んでもらう:
 
-決まったら書き込み、可能な環境ならトップページのスクリーンショット（ライト/
-ダーク）を見せて確認を取る（例: `pnpm build && pnpm preview` を Playwright で撮る）。
+- 配色: `@theme` の「基本の色」9つ — 地（bg）・沈めた帯（surface）・写真待ちの
+  面（plate）・文字（fg）・支配色（primary）とその沈み（primary-deep）・支配色の
+  上の文字（on-primary）・差し色（accent）・差し色の上の文字（on-accent）。
+  色の名前 + 色コードで。補助文字や罫線は「派生の色」が自動で作るので聞かない。
+  コントラスト 4.5:1 以上（fg / muted / subtle 対 bg・surface、on-primary 系
+  対 primary・primary-deep、on-accent 対 accent）を Claude が計算して確認済みの
+  ものだけ出す
+- 書体: 既定（見出し明朝＋本文ゴシック）/ すべてゴシック / 別の Fontsource の
+  書体。変えるなら `scripts/build-fonts.mjs` の `ENTRIES` と `@theme` の
+  `--font-sans` / `--font-mincho` を一緒に替え、`pnpm add @fontsource/<書体>`
+- 雰囲気のメモ: 余白・見出しの強さなど、トークンと既存の部品のクラスで表現
+  できる範囲で（角丸0・影なしはデザインの前提なので崩さない）
+
+決まったら書き込み、可能な環境ならトップページのスクリーンショットを見せて
+確認を取る（例: `pnpm build && pnpm preview` を Playwright で撮る。動きを止めて
+全部見せるなら `reducedMotion: "reduce"`）。
 
 デザインの決まり:
 
 - 参考サイトは**雰囲気・配色・構成の考え方だけ**を参考にする。ロゴ・文章・写真・
   イラスト・独自の装飾をそのまま写さない。
 - 表せるのは第2部のルールの範囲まで: 色は `@theme` トークンの値の差し替え、
-  書体はシステムフォント（Webフォントは読み込まない）、ランタイムJSや UIキットは
-  足さない。参考サイトの動き（スライダー・アニメーション等）は再現しないことを
-  伝える。
-- 参考サイトが特定の Webフォントを使っていても、近いシステムフォント
-  （ゴシック系 / 明朝系）で置き換える。
+  書体は自己ホストの Web フォント（Fontsource）、動きは既存の4種類の演出と
+  ローダー・ヒーローだけ。UIキットや新しい演出ライブラリは足さない。参考サイトの
+  独自の動きは再現しないことを伝える。
+- 参考サイトが Fontsource に無い Web フォントを使っていても、近い Fontsource の
+  書体（ゴシック系 / 明朝系）で置き換える。外部の CDN からは読み込まない。
 
 ### ラウンド4: 中身
 
@@ -164,36 +182,41 @@ Q13 が「する」なら、特商法表記に必要な項目（販売事業者�
 
 ## 回答の書き込み先
 
-| 質問 | 書き込み先                                                                                                                                                                                                                                                                                                                                                        |
-| ---- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Q1   | `site.ts` の `publisher`（JSON-LD の主体）: 会社・店舗・教室・団体 → `"Organization"`、個人・フリーランス → `"Person"`。Q5・Q6・Q12 の既定案と `business.type` の選択にも使う                                                                                                                                                                                     |
-| Q2   | `site.ts` の `name`。`package.json` と `wrangler.jsonc` の `"name"` は**英小文字とハイフン**に変換して設定（例: `cafe-hinata`）                                                                                                                                                                                                                                   |
-| Q3   | `site.ts` の `tagline` / `description`                                                                                                                                                                                                                                                                                                                            |
-| Q4   | `site.ts` の `author.name` / `author.email`。author は**人**（JSON-LD の Person になる）。会社名は `name` か `business.legalName` へ                                                                                                                                                                                                                              |
-| Q5   | `site.ts` の `business`（コメントを外して埋める）。`type` は schema.org の型（`Restaurant` `CafeOrCoffeeShop` `BeautySalon` `Dentist` `LegalService` `Store` など。迷えば `LocalBusiness`）。電話は `+81-` 形式、公開してよい店舗のメールは `business.email`、営業時間は `Mo-Fr 09:00-18:00` 形式、`addressCountry: "JP"`。緯度経度は地図リンクから分かる場合だけ |
-| Q6   | `src/pages/*.astro` を追加・削除し、`site.ts` の `nav` を並べ替える。法的ページは `footerNav`                                                                                                                                                                                                                                                                     |
-| Q7   | メール → `author.email`、電話 → `business.telephone`、外部フォーム → `site.ts` の `contactFormUrl`、LINE → `sameAs` に入れて `contact.astro` にも案内を追加。`contact.astro` の並び順と案内文                                                                                                                                                                     |
-| Q8   | `site.ts` の `sameAs`（フッターに自動でリンクが出る）                                                                                                                                                                                                                                                                                                             |
-| Q9   | `src/styles/global.css` の `@theme`（ライト）と `prefers-color-scheme: dark`（ダーク）の両方、`site.ts` の `themeColor` / `themeColorDark`（= 各 `--color-bg`）。書体は `--font-sans` の値（明朝にするなら明朝系のシステムフォントを並べる）。「見出しだけ明朝」なら `@theme` に `--font-serif` を足して見出しに `font-serif` を付ける                            |
-| Q10  | ロゴ → `public/favicon.svg` を差し替えて `pnpm images icons`。OG画像 → 写真があれば `pnpm images og <画像>`、無ければ配色確定後に `pnpm images og-text`。掲載写真 → `src/assets/images/`                                                                                                                                                                          |
-| Q11  | 各ページの本文（`src/pages/*.astro`）                                                                                                                                                                                                                                                                                                                             |
-| Q12  | `index.astro` の `faqs`（独立ページを選んだ場合はそちら）。不要なら `<FAQ>` ごと削除                                                                                                                                                                                                                                                                              |
-| Q13  | `src/pages/legal.astro`。特商法が必要なら同ページに節を足すか `/tokushoho` を作って `footerNav` に追加                                                                                                                                                                                                                                                            |
-| Q14  | `site.ts` の `url`（`https://` から始めて末尾スラッシュなし）。`.env` やビルド変数は使わない                                                                                                                                                                                                                                                                      |
+| 質問 | 書き込み先                                                                                                                                                                                                                                                                                                                                                                                   |
+| ---- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Q1   | `site.ts` の `publisher`（JSON-LD の主体）: 会社・店舗・教室・団体 → `"Organization"`、個人・フリーランス → `"Person"`。Q5・Q6・Q12 の既定案と `business.type` の選択にも使う                                                                                                                                                                                                                |
+| Q2   | `site.ts` の `name`。`package.json` と `wrangler.jsonc` の `"name"` は**英小文字とハイフン**に変換して設定（例: `cafe-hinata`）                                                                                                                                                                                                                                                              |
+| Q3   | `site.ts` の `tagline` / `description`。キャッチコピーは `index.astro` の `heroLines`（1〜2行に割る）と `heroEyebrow`（地域・業種などの一行）にも                                                                                                                                                                                                                                            |
+| Q4   | `site.ts` の `author.name` / `author.email`。author は**人**（JSON-LD の Person になる）。会社名は `name` か `business.legalName` へ                                                                                                                                                                                                                                                         |
+| Q5   | `site.ts` の `business`（コメントを外して埋める）。`type` は schema.org の型（`Restaurant` `CafeOrCoffeeShop` `BeautySalon` `Dentist` `LegalService` `Store` など。迷えば `LocalBusiness`）。電話は `+81-` 形式、公開してよい店舗のメールは `business.email`、営業時間は `Mo-Fr 09:00-18:00` 形式、`addressCountry: "JP"`。緯度経度は地図リンクから分かる場合だけ                            |
+| Q6   | `src/pages/*.astro` を追加・削除し、`site.ts` の `nav` を並べ替える。法的ページは `footerNav`                                                                                                                                                                                                                                                                                                |
+| Q7   | メール → `author.email`、電話 → `business.telephone`、外部フォーム → `site.ts` の `contactFormUrl`、LINE → `sameAs` に入れて `contact.astro` にも案内を追加。`contact.astro` の並び順と案内文。一番の導線を `site.ts` の `cta`（ヘッダーのボタン・スマホ下部の常駐バー・ヒーロー・ページ末尾の帯が指す）に。外部URLなら `external: true`                                                     |
+| Q8   | `site.ts` の `sameAs`（フッターに自動でリンクが出る）                                                                                                                                                                                                                                                                                                                                        |
+| Q9   | `src/styles/global.css` の `@theme` の「基本の色」9つ（派生の色は触らない）、`site.ts` の `themeColor`（= `--color-bg`）。書体は `scripts/build-fonts.mjs` の `ENTRIES` と `@theme` の `--font-sans` / `--font-mincho`。「すべてゴシック」なら `--font-mincho` の値を `--font-sans` と同じ並びにする                                                                                         |
+| Q10  | ロゴ → `public/favicon.svg` を差し替えて `pnpm images icons`。OG画像 → 写真があれば `pnpm images og <画像>`、無ければ配色確定後に `pnpm images og-text`。掲載写真 → `src/assets/images/` に置き、`index.astro`（ヒーローの `slides`・各節）と `about.astro` の `sample/` の import を差し替える。写真が無い間はサンプル画像のまま（使わなくなった `src/assets/images/sample/` は最後に削除） |
+| Q11  | 各ページの本文（`src/pages/*.astro`）。ページ末尾の帯の見出しと一文は `CtaBand.astro` の既定値（ページごとに `heading` / `note` で上書き可）                                                                                                                                                                                                                                                 |
+| Q12  | `index.astro` の `faqs`（独立ページを選んだ場合はそちら）。不要なら `<FAQ>` ごと削除                                                                                                                                                                                                                                                                                                         |
+| Q13  | `src/pages/legal.astro`。特商法が必要なら同ページに節を足すか `/tokushoho` を作って `footerNav` に追加                                                                                                                                                                                                                                                                                       |
+| Q14  | `site.ts` の `url`（`https://` から始めて末尾スラッシュなし）。`.env` やビルド変数は使わない                                                                                                                                                                                                                                                                                                 |
 
 ## 書き込むときの決まり
 
-- **ページの雛形**: 新しいページは既存の `about.astro` をコピーして作る
-  （`Base` + `<article class="prose">` + `canonicalPath`）。`title` はページ名
-  だけ（「| サイト名」は自動で付く）、`description` はページごとに書く。
+- **ページの雛形**: 新しいページは既存の `legal.astro`（文章中心）か
+  `about.astro`（写真＋節）をコピーして作る。頭は `PageHead`（パンくず＋題）、
+  節は `Section`、末尾は `CtaBand`。`breadcrumbs` は表示用と `Base` の両方に
+  渡す。`title` はページ名だけ（「| サイト名」は自動で付く）、`description` は
+  ページごとに書く。
 - **写真**: `src/assets/images/` に置き、`astro:assets` の `<Image>` で出す。
   `alt` は必ず内容を説明する文にする（装飾なら `alt=""`）。`public/` に直接
   置かない（最適化されない）。
 - **地図の埋め込み**（アクセスページ）: Googleマップの `<iframe>` に
   `loading="lazy"` と `title` を付ける。`public/_headers` の CSP を有効にして
   いる場合は `frame-src https://www.google.com` を足す。
-- **配色**: 本文色と背景色のコントラストは 4.5:1 以上（WCAG AA）。ダーク側も
-  同じ基準で必ず作る（片方だけ変えるとダークモードで読めなくなる）。
+- **配色**: 本文色と背景色のコントラストは 4.5:1 以上（WCAG AA）。支配色の面
+  （帯・フッター・ヒーロー）の上の文字も同じ基準。ダークモードは無い（ライトのみ）。
+- **電話・営業時間・住所**: `site.ts` には schema.org の書式（`+81-` の電話、
+  `Mo-Fr 09:00-18:00`）で書く。画面には `src/lib/display.ts` が国内表記
+  （`03-…`、`月〜金 9:00〜18:00`）に直して出す。値は同じなので JSON-LD と一致する。
 - **文章**: 敬体（です・ます）。誇大表現（「No.1」「絶対」など根拠の無いもの）
   は使わない。利用者が言っていない実績・数値・資格を書かない。
 - 第2部のルールはセットアップ中も全部守る。
@@ -213,7 +236,8 @@ JSON-LD は `site.ts` から自動で組み立てられるが、**セットア�
      なっていない
    - `business.type` が業種に合う schema.org の型になっている（Q5）
    - JSON-LD の住所・電話・営業時間が、ページに表示している内容
-     （`BusinessInfo` やアクセスページ）と一字一句一致している
+     （`BusinessInfo` やアクセスページ）と一致している（表記の違いは
+     `src/lib/display.ts` の国内表記への変換だけ）
    - `sameAs` が公式アカウントだけで、個人の私的なアカウントが混ざっていない
 4. `pnpm check:jsonld --strict` が終了コード 0 になるまで直す（テンプレートの
    仮の値が残っていると失敗する。公開URLが未定の `example.com` は注記のみ）。
@@ -250,7 +274,8 @@ JSON-LD は `site.ts` から自動で組み立てられるが、**セットア�
 | 開発             | `pnpm dev`                                                                |
 | 型チェック       | `pnpm check`                                                              |
 | 単体テスト       | `pnpm test`                                                               |
-| ビルド           | `pnpm build`                                                              |
+| ビルド           | `pnpm build`（前後でフォントの生成と検算が自動で走る）                    |
+| フォント再生成   | `pnpm fonts` / 検算 `pnpm verify:fonts`                                   |
 | リンク検査       | `pnpm check:links`（`pnpm build` の後に実行）                             |
 | JSON-LD 検査     | `pnpm check:jsonld`（`pnpm build` の後に実行）。`--strict` で仮の値も検出 |
 | フォーマット     | `pnpm format`                                                             |
@@ -294,21 +319,46 @@ CI と同じ検査をローカルで通すには:
    （`"Organization"` なら Organization ノード、`"Person"` なら Organization を
    出さず Person が publisher になる）。出力結果は `pnpm check:jsonld` で検査する。
 
-6. **ランタイムJavaScriptを増やさない。**
-   現状の唯一のJSは Astro の prefetch（約2.3kB）。UIの状態は CSS と
-   `<details>` などのネイティブ要素で表現する（例: `Header.astro` のメニュー）。
-   問い合わせフォームも自前で JS を書かず、外部フォームへのリンクにする。
+6. **JavaScript は「演出」だけ。増やさない。**
+   ランタイムJSは Astro の prefetch と、GSAP による演出（`src/scripts/`）だけ:
+   ローダー（`loader.ts`。初回訪問のみ）、スクロール演出（`motion.ts`）、
+   ヒーローの写真送り（`hero.ts`）、メニューを外側タップで閉じる処理。演出は
+   要素に属性を付けて使う（`data-reveal` / `data-reveal-child` /
+   `data-rule` / `data-img-reveal` の4種類だけ）。新しい演出ライブラリや
+   UIの状態を JS で持つ部品は足さない — 状態は CSS と `<details>` などの
+   ネイティブ要素で表現する（例: `Header.astro` のメニュー）。
+   **JS が無くても、動きを減らす設定でも、全部読める**こと: 伏せる初期状態は
+   `.js-ready` 配下にだけ書き（`global.css`）、`prefers-reduced-motion` では
+   即座に出す。問い合わせフォームも自前で JS を書かず、外部フォームへのリンクにする。
 
 7. **色は `src/styles/global.css` の `@theme` トークンだけを使う。**
-   `text-fg` / `bg-bg` / `text-muted` / `border-border` / `bg-surface` /
-   `text-link`。生の hex や Tailwind の既定パレット（`text-gray-700` など）を
-   書かない — ダークモードが追従しなくなる。ダークモードは
-   `prefers-color-scheme` でトークンを差し替えるだけで、トグルもJSもない。
-   ブランド色は既存トークンの**値**を差し替えて表す。どうしても色を増やす
-   なら `@theme` とダーク側の両方に足し、このリストにも追記する。
+   面: `bg` / `surface` / `plate` / `primary` / `primary-deep` / `accent`。
+   文字: `fg` / `muted` / `subtle` / `faint`（装飾のみ）/ `on-primary` /
+   `on-primary-muted` / `on-primary-subtle` / `on-accent`。罫: `border` /
+   `border-soft` / `border-strong` / `border-on-primary`。
+   生の hex や Tailwind の既定パレット（`text-gray-700` など）を書かない —
+   配色を差し替えたときに追従しなくなる。配色は「基本の色」9つの**値**を
+   差し替えて表し、「派生の色」（`muted` や `border` など）は color-mix で
+   基本の色から作るので直接値を書かない。ダークモードは持たない（ライトのみ）。
+   差し色（`accent` / `btn-accent`）は**その画面で一番大事な操作にだけ**使い、
+   1画面に2つ出さない。どうしても色を増やすなら `@theme` に足し、このリストにも
+   追記する。
 
-8. **本文の見た目は `prose`（Tailwind Typography）に任せる。**
-   各ページは `<article class="prose">` で組む。`--tw-prose-*` はトークンに
+   **見た目は既存の部品とユーティリティで組む。**
+   見出しは `h-display`（ページに一度）/ `h-section` / `h-item`、小見出しは
+   `eyebrow`、本文は `body-text` / `body-sm`、ボタンは `btn-accent` /
+   `btn-primary` / `btn-line` / `btn-line-on-primary`、単独リンクは `link-rule`、
+   表は `spec-row`（すべて `global.css`）。節は `ui/Section.astro`、下層ページの
+   頭は `ui/PageHead.astro`、導線は `InlineCta.astro`（節の間）と
+   `CtaBand.astro`（ページ末尾）。角丸と影は使わない（区切りは罫線と余白だけ）。
+   書体は自己ホストの Web フォントで、`scripts/build-fonts.mjs` が `src/` の
+   文字を数えて必要な分割だけを書き出し、`postbuild` の
+   `scripts/verify-fonts.mjs` が出力の全文字が収まっているか検算する
+   （漏れがあればビルドが落ちる）。外部 CDN からフォントを読まない。
+
+8. **文章中心の本文は `prose`（Tailwind Typography）に任せる。**
+   文章が続く部分（`legal.astro` や `about.astro` の節）は `prose` で組む。
+   トップのような構成の部品は 7 の部品で組む。`--tw-prose-*` はトークンに
    束ねてあるので、prose 内で色を上書きしない。prose の外に出したい部品
    （カード・ボタン列など）は `not-prose` を付けてトークンで組む。
 

@@ -1,0 +1,72 @@
+---
+import { site } from "../content/site";
+import { displayTel, telHref } from "../lib/display";
+
+/**
+ * 支配色の導線帯。各ページの終わりに一つ置く。
+ * 主導線（差し色）は既定で site.cta。残りは罫線ボタンで並べる。
+ */
+type Link = { label: string; href: string; external?: boolean };
+type Props = {
+  heading?: string;
+  note?: string;
+  /** 主導線を差し替えるとき。省略時は site.cta。 */
+  primary?: Link;
+  /** 並べる副導線。省略時は電話（site.business.telephone があれば）。 */
+  secondary?: Link[];
+};
+
+const {
+  // TODO(setup): Q11 ページ末尾の導線帯の見出しと一文（各ページで上書きも可）
+  heading = "まずは、お気軽にご相談ください。",
+  note = "ご質問だけでもかまいません。内容を確認して、担当者からご連絡します。",
+  primary = site.cta,
+  secondary,
+} = Astro.props;
+
+const tel = site.business?.telephone;
+const links =
+  secondary ??
+  (tel ? [{ label: `電話 ${displayTel(tel)}`, href: telHref(tel) }] : []);
+---
+
+<section class="bg-primary text-on-primary">
+  <div class="container-page py-16 md:py-24">
+    <div class="grid gap-12 lg:grid-cols-[1.35fr_1fr] lg:items-end">
+      <div>
+        <h2 data-reveal class="h-section m-0 max-w-2xl">{heading}</h2>
+        <p
+          data-reveal
+          data-reveal-delay="0.06"
+          class="m-0 mt-5 max-w-md text-[0.85rem] leading-[2] text-on-primary-muted"
+        >
+          {note}
+        </p>
+      </div>
+
+      <div
+        data-reveal-child="0.07"
+        class="grid gap-3 sm:grid-cols-2 lg:grid-cols-1"
+      >
+        <a
+          href={primary.href}
+          target={primary.external ? "_blank" : undefined}
+          rel={primary.external ? "noopener" : undefined}
+          class="btn-accent w-full">{primary.label}</a
+        >
+        {
+          links.map((item) => (
+            <a
+              href={item.href}
+              target={item.external ? "_blank" : undefined}
+              rel={item.external ? "noopener" : undefined}
+              class="btn-line-on-primary w-full"
+            >
+              {item.label}
+            </a>
+          ))
+        }
+      </div>
+    </div>
+  </div>
+</section>
